@@ -29,7 +29,7 @@ private:
 	void op_5XY0(unsigned short);
 	void op_6XNN(unsigned short);
 	void op_7XNN(unsigned short);
-	void op_8XYN(unsigned short data);
+	void op_8XYN(unsigned short);
 	void op_9XY0(unsigned short);
 	void op_ANNN(unsigned short);
 	void op_BNNN(unsigned short);
