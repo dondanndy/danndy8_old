@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 	Cpu chip8(rom);
 	//chip8.Init(rom);
 
-	for (int i = 0; i < 40; i++) {
+	for (int i = 0; i < 70; i++) {
 		chip8.Get_Opcode();
 	}
 

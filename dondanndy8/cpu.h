@@ -14,6 +14,14 @@ public:
 	std::array<unsigned char, 16> V;
 
 private:
+
+	std::array<unsigned char, 64 * 32> gfx;
+
+	std::array<unsigned short, 16> stack;
+	unsigned short stack_pointer;
+
+	std::array<unsigned char, 16> keys;
+
 	unsigned short pc;
 	unsigned short I;
 
@@ -22,6 +30,8 @@ private:
 	unsigned char delay_timer;
 
 	//Instructions, names by opcode.
+	void op_00E0(unsigned short);
+	void op_00EE(unsigned short);
 	void op_1NNN(unsigned short);
 	void op_2NNN(unsigned short);
 	void op_3XNN(unsigned short);
@@ -34,6 +44,7 @@ private:
 	void op_ANNN(unsigned short);
 	void op_BNNN(unsigned short);
 	void op_CXNN(unsigned short);
+	void op_FXNN(unsigned short);
 
 	//fontset
 	std::array<unsigned char, 80> fontset = {
