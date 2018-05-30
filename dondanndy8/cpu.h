@@ -3,6 +3,7 @@
 #include <array>
 #include <vector>
 #include <random>
+#include <iostream>
 
 class Cpu {
 public:
@@ -16,6 +17,7 @@ public:
 private:
 
 	std::array<unsigned char, 64 * 32> gfx;
+	bool draw_screen;
 
 	std::array<unsigned short, 16> stack;
 	unsigned short stack_pointer;
@@ -44,6 +46,8 @@ private:
 	void op_ANNN(unsigned short);
 	void op_BNNN(unsigned short);
 	void op_CXNN(unsigned short);
+	void op_DXYN(unsigned short);
+	void op_EXNN(unsigned short);
 	void op_FXNN(unsigned short);
 
 	//fontset

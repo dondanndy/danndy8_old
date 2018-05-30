@@ -1,5 +1,4 @@
 #include "cpu.h"
-#include <iostream>
 
 Cpu::Cpu(std::vector<char>& rom) {
 		//Let's set the registers.
@@ -9,6 +8,7 @@ Cpu::Cpu(std::vector<char>& rom) {
 		memory = { 0 };
 
 		gfx = { 0 };
+		draw_screen = false;
 
 		stack = { 0 };
 		stack_pointer = 0;
@@ -106,6 +106,14 @@ void Cpu::Decode_Opcode(unsigned short addr) {
 
 	case 0xC:
 		op_CXNN(data);
+		break;
+
+	case 0xD:
+		op_DXYN(data);
+		break;
+
+	case 0xE:
+		op_EXNN(data);
 		break;
 
 	case 0xF:
@@ -212,23 +220,23 @@ void Cpu::op_8XYN(unsigned short data) {
 	unsigned short reg2 = data & 0xF0 >> 4;
 
 	switch (selector) {
-	case 0x0: {
+	case 0x0:
 		V[reg1] = V[reg2];
 		break;
-	};
-	case 0x1: {
+
+	case 0x1:
 		V[reg1] = V[reg1] | V[reg2];
 		break;
-	};
-	case 0x2: {
+
+	case 0x2:
 		V[reg1] = V[reg1] & V[reg2];
 		break;
-	};
-	case 0x3: {
+
+	case 0x3:
 		V[reg1] = V[reg1] ^ V[reg2];
 		break;
-	};
-	case 0x4: {
+
+	case 0x4:
 		if (V[reg2] > (0xFF - V[reg1])) {
 			V[0xF] = 1; //carry
 		} else{
@@ -237,8 +245,8 @@ void Cpu::op_8XYN(unsigned short data) {
 
 		V[reg1] += V[reg2];
 		break;
-	};
-	case 0x5: {
+
+	case 0x5:
 		if (V[reg2] < V[reg1]) {
 			V[0xF] = 1;
 		}
@@ -248,12 +256,12 @@ void Cpu::op_8XYN(unsigned short data) {
 
 		V[reg1] -= V[reg2];
 		break;
-	};
-	case 0x6: {
+
+	case 0x6:
 		V[reg1] = V[reg2] >> 1;
 		break;
-	};
-	case 0x7: {
+
+	case 0x7:
 		if (V[reg2] < V[reg1]) {
 			V[0xF] = 1;
 		}
@@ -263,12 +271,10 @@ void Cpu::op_8XYN(unsigned short data) {
 
 		V[reg1] = V[reg2] - V[reg1];
 		break;
-	};
-	case 0xE: {
+
+	case 0xE:
 		V[reg1] = V[reg2] << 1;
 		break;
-	};
-		
 	}
 
 	pc += 2;
@@ -312,48 +318,90 @@ void Cpu::op_CXNN(unsigned short data) {
 	pc += 2;
 }
 
+void Cpu::op_DXYN(unsigned short data) {
+	unsigned short x = V[(data & 0xF00) >> 8];
+	unsigned short y = V[(data & 0xF0) >> 4];
+	unsigned short height = data & 0xF;
+	unsigned short pixel;
+
+	V[0xF] = 0;
+	for (int yline = 0; yline < height; yline++) {
+		pixel = memory[I + yline];
+		for (int xline = 0; xline < 8; xline++) {
+			if (pixel &(0x80 >> xline) != 0) {
+				if (gfx[(x + xline + ((y + yline) * 64))] == 1) {
+					V[0xF] = 1;
+				}
+				gfx[(x + xline + ((y + yline) * 64))] ^= 1;
+			}
+		}
+	}
+
+	drawFlag = true;
+	
+	pc += 2;
+}
+
+void Cpu::op_EXNN(unsigned short data) {
+	unsigned char selector = data & 0xFF;
+	unsigned char reg = (data & 0xF00) >> 8;
+
+	switch (selector) {
+	case 0x9E: {
+		if (keys[V[reg]]) {
+			pc += 4;
+		}
+		else {
+			pc += 2;
+		}
+		break;
+	}
+	case 0xA1: {
+		if (!keys[V[reg]]) {
+			pc += 4;
+		}
+		else {
+			pc += 2;
+		}
+		break;
+	}
+	}
+}
+
 void Cpu::op_FXNN(unsigned short data) {
 	unsigned char selector = data & 0xFF;
 	unsigned char reg = (data & 0xF00) >> 8;
 
 	switch (selector)
 	{
-	case 0x07: {
+	case 0x07:
 		V[reg] = delay_timer;
 		break;
-	};
 
-	case 0x0A: {
+	/*case 0x0A:
 		V[reg] = delay_timer;
-		break;
-	};
+		break;*/
 
-	case 0x15: {
+	case 0x15:
 		delay_timer = V[reg];
 		break;
-	};
 
-	case 0x18: {
+	case 0x18:
 		sound_timer = V[reg];
 		break;
-	};
 
-	case 0x1E: {
+	case 0x1E:
 		I += V[reg];
 		break;
-	};
 
-	case 0x33: {
+	case 0x33:
 		reg = (data & 0xF00) >> 8;
 
 		memory[I] = V[reg] / 100;
 		memory[I + 1] = (V[reg] / 10) % 10;
 		memory[I + 2] = (V[reg] % 100) % 10;
 
-		pc += 2;
 		break;
-	};
-
 
 	default:
 		std::cout << "Opcode: F" << data << " not implemented :(" << std::endl;
